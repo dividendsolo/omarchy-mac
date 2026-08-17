@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.omarchy-mac.aerospace-keepalive</string>
+
+    <!-- The defaults write guards against AeroSpace's terminate-on-launch bug
+         when its menu-bar icon is flagged hidden (upstream discussion #1786):
+         a hidden NSStatusItem makes AeroSpace exit 0 instantly, which this
+         watchdog would respect as a clean quit and leave it down. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>/usr/bin/defaults write bobko.aerospace "NSStatusItem VisibleCC Item-0" -bool true; exec /Applications/AeroSpace.app/Contents/MacOS/AeroSpace</string>
+    </array>
+
+    <!-- Start AeroSpace at login (replaces its built-in start-at-login). -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Relaunch ONLY on a crash (abnormal/non-zero exit). A clean quit
+         from AeroSpace's menu exits 0 and is respected (stays down). -->
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <!-- Don't hammer a crash-loop: wait 5s between relaunches. -->
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOU/Library/Logs/aerospace-keepalive.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/YOU/Library/Logs/aerospace-keepalive.log</string>
+</dict>
+</plist>

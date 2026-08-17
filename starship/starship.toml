@@ -1,0 +1,29 @@
+# Starship prompt — minimal Tokyo Night
+# https://starship.rs/config/
+
+add_newline = false
+
+format = "$directory$git_branch$git_status$cmd_duration$character"
+
+[directory]
+style = "bold #7aa2f7"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = " "
+style = "#bb9af7"
+format = "[on $symbol$branch ]($style)"
+
+[git_status]
+style = "#e0af68"
+format = "[$all_status$ahead_behind ]($style)"
+
+[cmd_duration]
+min_time = 2000
+style = "#565f89"
+format = "[took $duration ]($style)"
+
+[character]
+success_symbol = "[➜](bold #9ece6a)"
+error_symbol = "[➜](bold #f7768e)"

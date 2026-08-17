@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# SketchyBar — Tokyo Night, AeroSpace-aware
+# Reload: brew services restart sketchybar  (or: sketchybar --reload)
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+source "$CONFIG_DIR/colors.sh"
+
+# ---------- Bar ----------
+sketchybar --bar \
+  position=top \
+  height=32 \
+  blur_radius=30 \
+  color="$BG_TRANS" \
+  border_width=0 \
+  padding_left=8 \
+  padding_right=8 \
+  margin=0 \
+  notch_width=200 \
+  display=all \
+  topmost=window
+
+# ---------- Defaults ----------
+default=(
+  padding_left=4
+  padding_right=4
+  icon.font="Hack Nerd Font:Bold:14.0"
+  label.font="Hack Nerd Font:Bold:13.0"
+  icon.color="$FG"
+  label.color="$FG"
+  icon.padding_left=6
+  icon.padding_right=6
+  label.padding_left=4
+  label.padding_right=6
+  background.corner_radius=6
+  background.height=22
+)
+sketchybar --default "${default[@]}"
+
+# ---------- Custom events ----------
+sketchybar --add event aerospace_workspace_change
+
+# ---------- AeroSpace workspaces ----------
+for sid in 1 2 3 4 5; do
+  sketchybar --add item space."$sid" left \
+             --subscribe space."$sid" aerospace_workspace_change \
+             --set space."$sid" \
+                   icon="$sid" \
+                   label.drawing=off \
+                   background.color="$SURFACE" \
+                   background.drawing=off \
+                   click_script="/opt/homebrew/bin/aerospace workspace $sid" \
+                   script="$PLUGIN_DIR/aerospace.sh"
+done
+
+# Separator between workspaces and front_app
+sketchybar --add item space_sep left \
+           --set space_sep \
+                 icon="" \
+                 icon.color="$COMMENT" \
+                 icon.padding_left=8 \
+                 icon.padding_right=8 \
+                 label.drawing=off \
+                 background.drawing=off
+
+# ---------- Front app (focused window) ----------
+sketchybar --add item front_app left \
+           --set front_app \
+                 label.color="$BLUE" \
+                 icon.padding_right=4 \
+                 script="$PLUGIN_DIR/front_app.sh" \
+           --subscribe front_app front_app_switched
+
+# ---------- Spotify (now-playing marquee) ----------
+# Instant updates via Spotify's distributed notification; update_freq is a fallback.
+sketchybar --add event spotify_change "com.spotify.client.PlaybackStateChanged"
+sketchybar --add item spotify left \
+           --set spotify \
+                 drawing=off \
+                 icon="" \
+                 icon.color="$GREEN" \
+                 label.color="$FG" \
+                 label.max_chars=18 \
+                 scroll_texts=on \
+                 label.scroll_duration=200 \
+                 background.drawing=off \
+                 update_freq=5 \
+                 script="$PLUGIN_DIR/spotify.sh" \
+                 click_script="osascript -e 'tell application \"Spotify\" to playpause'" \
+           --subscribe spotify spotify_change
+
+# Next-track button (shown/hidden together with the marquee by spotify.sh)
+sketchybar --add item spotify_next left \
+           --set spotify_next \
+                 drawing=off \
+                 icon="" \
+                 icon.color="$FG" \
+                 label.drawing=off \
+                 background.drawing=off \
+                 click_script="osascript -e 'tell application \"Spotify\" to next track'"
+
+# ---------- Right side ----------
+sketchybar --add item clock center \
+           --set clock \
+                 update_freq=10 \
+                 icon="" \
+                 icon.color="$MAGENTA" \
+                 label.color="$FG" \
+                 script="$PLUGIN_DIR/clock.sh" \
+                 click_script='open "x-apple.systempreferences:com.apple.Date-Time-Settings.extension"' \
+           --subscribe clock display_change
+
+# Current theme name — label re-reads on every `sketchybar --reload`, which the
+# `theme` script fires after each switch. Click = shuffle (theme random).
+sketchybar --add item theme_name center \
+           --set theme_name \
+                 icon="󰏘" \
+                 icon.color="$YELLOW" \
+                 label="$(cat "$HOME/.config/theme-switcher/current" 2>/dev/null || echo "?")" \
+                 label.color="$FG" \
+                 click_script="$HOME/.local/bin/theme random"
+
+sketchybar --add item volume right \
+           --set volume \
+                 update_freq=5 \
+                 icon.color="$CYAN" \
+                 label.color="$FG" \
+                 script="$PLUGIN_DIR/volume.sh" \
+                 click_script='open "x-apple.systempreferences:com.apple.Sound-Settings.extension"' \
+           --subscribe volume volume_change
+
+sketchybar --add item wifi right \
+           --set wifi \
+                 update_freq=30 \
+                 script="$PLUGIN_DIR/wifi.sh" \
+                 click_script='open "x-apple.systempreferences:com.apple.wifi-settings-extension"'
+
+sketchybar --add item bluetooth right \
+           --set bluetooth \
+                 update_freq=60 \
+                 script="$PLUGIN_DIR/bluetooth.sh" \
+                 click_script='open "x-apple.systempreferences:com.apple.BluetoothSettings"'
+
+sketchybar --add item battery right \
+           --set battery \
+                 update_freq=120 \
+                 icon.color="$GREEN" \
+                 label.color="$FG" \
+                 script="$PLUGIN_DIR/battery.sh" \
+                 click_script='open "x-apple.systempreferences:com.apple.Battery-Settings.extension"' \
+           --subscribe battery system_woke power_source_change
+
+# Right-side clock + theme name — the leftmost pair of the right cluster, i.e.
+# immediately in front of the battery. These are the built-in display's variant:
+# clock.sh pins them to the notched laptop panel and pins the centered pair to
+# the external displays, so both layouts are live at once on different screens.
+#
+# Right-side items are laid out right-to-left in the order they're added, so
+# theme_name_right must be added BEFORE clock_right to end up on its right —
+# preserving the same clock-then-theme reading order as the centered pair.
+sketchybar --add item theme_name_right right \
+           --set theme_name_right \
+                 drawing=off \
+                 icon="󰏘" \
+                 icon.color="$YELLOW" \
+                 label.color="$FG" \
+                 click_script="$HOME/.local/bin/theme random"
+
+sketchybar --add item clock_right right \
+           --set clock_right \
+                 drawing=off \
+                 icon="󰥔" \
+                 icon.color="$MAGENTA" \
+                 label.color="$FG" \
+                 click_script='open "x-apple.systempreferences:com.apple.Date-Time-Settings.extension"'
+
+# ---------- Force first run ----------
+sketchybar --update
+sketchybar --trigger aerospace_workspace_change \
+  FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused 2>/dev/null)"
+
+# Volume only subscribes to volume_change events, so prime it on startup
+NAME=volume bash "$PLUGIN_DIR/volume.sh"
+
+# Prime front_app on startup with the currently focused app name
+FRONT_APP="$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)"
+NAME=front_app SENDER=front_app_switched INFO="$FRONT_APP" bash "$PLUGIN_DIR/front_app.sh"
+
+# Prime Spotify marquee on startup
+NAME=spotify bash "$PLUGIN_DIR/spotify.sh"

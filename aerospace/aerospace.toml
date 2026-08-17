@@ -1,0 +1,305 @@
+# AeroSpace config — Omarchy bindings for macOS (cmd = Super)
+# Reload with: aerospace reload-config
+
+# Lifecycle (startup + relaunch-on-crash) is owned by the launchd watchdog:
+# ~/Library/LaunchAgents/com.omarchy-mac.aerospace-keepalive.plist
+start-at-login = false
+
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+on-focused-monitor-changed = [
+  'move-mouse monitor-lazy-center',
+  'exec-and-forget /bin/bash -c "/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$(/opt/homebrew/bin/aerospace list-workspaces --focused)"'
+]
+on-focus-changed = ['move-mouse window-lazy-center']
+
+# Notify SketchyBar when workspace focus changes
+exec-on-workspace-change = ['/bin/bash', '-c',
+  '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
+
+# ---------- Pin workspaces to specific monitors ----------
+# VA2446 (2) sits on the right; VA2446 (1) sits on the left; laptop sits under
+# the right external. If the laptop isn't connected, workspaces 4/5 fall back
+# to the left external.
+[workspace-to-monitor-force-assignment]
+# Each workspace prefers its primary monitor but falls back through the chain
+# so it always has somewhere to display, even when some monitors are unplugged.
+1 = ['\(1\)$', '\(2\)$', 'built-in']      # browser → left, else right, else laptop
+2 = ['\(2\)$', '\(1\)$', 'built-in']      # Claude  → right, else left, else laptop
+3 = ['\(2\)$', '\(1\)$', 'built-in']      # Ghostty → right, else left, else laptop
+4 = ['built-in', '\(2\)$', '\(1\)$']      # comms   → laptop, else right, else left
+5 = ['built-in', '\(2\)$', '\(1\)$']      # music   → laptop, else right, else left
+
+[gaps]
+inner.horizontal = 8
+inner.vertical = 8
+outer.left = 8
+outer.bottom = 8
+outer.top = 40   # 32 (SketchyBar height) + 8 (visual gap)
+outer.right = 8
+
+[mode.main.binding]
+
+# ---------- Navigating ----------
+cmd-space = 'exec-and-forget open -a Raycast'
+# cmd-alt-space → handled by Hammerspoon (Omarchy control menu)
+# theme switcher still available on cmd-ctrl-shift-space below
+cmd-ctrl-l = '''exec-and-forget osascript -e 'tell application "System Events" to keystroke "q" using {control down, command down}' '''
+
+alt-w = '''exec-and-forget osascript -e 'tell application "System Events" to keystroke "q" using {command down}' '''
+ctrl-alt-backspace = 'close-all-windows-but-current'
+
+alt-s = 'layout floating tiling'
+alt-j = 'layout tiles horizontal vertical'
+
+alt-f = 'fullscreen'
+cmd-alt-f = 'fullscreen'
+cmd-ctrl-f = 'macos-native-fullscreen'
+
+# ---------- Workspaces ----------
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+
+alt-tab = 'workspace-back-and-forth'
+cmd-ctrl-tab = 'workspace-back-and-forth'
+
+cmd-shift-1 = ['move-node-to-workspace 1', 'workspace 1']
+cmd-shift-2 = ['move-node-to-workspace 2', 'workspace 2']
+cmd-shift-3 = ['move-node-to-workspace 3', 'workspace 3']
+cmd-shift-4 = ['move-node-to-workspace 4', 'workspace 4']
+cmd-shift-5 = ['move-node-to-workspace 5', 'workspace 5']
+
+cmd-shift-alt-1 = 'move-node-to-workspace 1'
+cmd-shift-alt-2 = 'move-node-to-workspace 2'
+cmd-shift-alt-3 = 'move-node-to-workspace 3'
+cmd-shift-alt-4 = 'move-node-to-workspace 4'
+cmd-shift-alt-5 = 'move-node-to-workspace 5'
+
+# ---------- Focus ----------
+cmd-left = 'focus left'
+cmd-down = 'focus down'
+cmd-up = 'focus up'
+cmd-right = 'focus right'
+
+# ---------- Swap ----------
+cmd-shift-left = 'move left'
+cmd-shift-down = 'move down'
+cmd-shift-up = 'move up'
+cmd-shift-right = 'move right'
+
+# ---------- Workspace to monitor ----------
+cmd-shift-alt-left = 'move-workspace-to-monitor --wrap-around prev'
+cmd-shift-alt-right = 'move-workspace-to-monitor --wrap-around next'
+cmd-shift-alt-up = 'move-workspace-to-monitor --wrap-around prev'
+cmd-shift-alt-down = 'move-workspace-to-monitor --wrap-around next'
+
+# ---------- Move just the focused window across monitors ----------
+# (swap within workspace = cmd-shift-arrow; whole workspace = cmd-shift-alt-arrow)
+cmd-ctrl-shift-left = 'move-node-to-monitor --wrap-around --focus-follows-window left'
+cmd-ctrl-shift-right = 'move-node-to-monitor --wrap-around --focus-follows-window right'
+cmd-ctrl-shift-up = 'move-node-to-monitor --wrap-around --focus-follows-window up'
+cmd-ctrl-shift-down = 'move-node-to-monitor --wrap-around --focus-follows-window down'
+
+# ---------- Resize ----------
+alt-equal = 'resize smart +50'
+alt-minus = 'resize smart -50'
+cmd-shift-equal = 'resize height +50'
+cmd-shift-minus = 'resize height -50'
+
+# ---------- Monitor cycling ----------
+ctrl-alt-tab = 'focus-monitor --wrap-around next'
+ctrl-alt-shift-tab = 'focus-monitor --wrap-around prev'
+
+# ---------- Cycle windows within workspace ----------
+cmd-backtick = 'focus --boundaries-action wrap-around-the-workspace dfs-next'
+cmd-shift-backtick = 'focus --boundaries-action wrap-around-the-workspace dfs-prev'
+
+# ---------- Launching apps ----------
+alt-enter = 'exec-and-forget open -na Ghostty'
+cmd-alt-enter = 'exec-and-forget open -na Ghostty --args -e tmux'
+cmd-shift-enter = 'exec-and-forget open -a "Brave Browser"'
+cmd-shift-alt-b = 'exec-and-forget open -na "Brave Browser" --args --incognito'
+cmd-alt-c = 'exec-and-forget open -a "Google Chrome"'
+
+cmd-shift-f = 'exec-and-forget open -a Finder'
+cmd-shift-alt-f = 'exec-and-forget open -a Finder'
+
+cmd-shift-m = 'exec-and-forget open -a Spotify'
+cmd-shift-slash = 'exec-and-forget open -a 1Password'
+cmd-shift-n = 'exec-and-forget open -na Ghostty --args -e nvim'
+
+cmd-shift-c = 'exec-and-forget open https://app.hey.com/calendar'
+cmd-shift-e = 'exec-and-forget open https://app.hey.com'
+
+cmd-shift-a = 'exec-and-forget open -a Claude'
+cmd-shift-alt-a = 'exec-and-forget open https://grok.com'
+
+cmd-shift-g = 'exec-and-forget open -a Signal'
+cmd-shift-alt-g = 'exec-and-forget open -a WhatsApp'
+cmd-shift-ctrl-g = 'exec-and-forget open https://chat.google.com'
+
+cmd-shift-p = 'exec-and-forget open https://photos.google.com'
+cmd-shift-d = 'exec-and-forget open -na Ghostty --args -e lazydocker'
+cmd-shift-o = 'exec-and-forget open -a Obsidian'
+cmd-shift-w = 'exec-and-forget open -a Typora'
+
+cmd-shift-x = 'exec-and-forget open https://x.com'
+cmd-shift-alt-x = 'exec-and-forget open https://x.com/compose/post'
+cmd-shift-y = 'exec-and-forget open https://youtube.com'
+
+# ---------- Style: theme switcher ----------
+# cmd-ctrl-shift-space → handled by Hammerspoon (shows theme chooser UI)
+
+# ---------- Capture (cmd+shift+5 picker) ----------
+cmd-ctrl-c = 'exec-and-forget /bin/sh -c "osascript -e \"tell application \\\"System Events\\\" to key code 23 using {command down, shift down}\""'
+
+# ---------- Toggles ----------
+cmd-ctrl-i = 'exec-and-forget /bin/sh -c "pgrep -x caffeinate >/dev/null && pkill -x caffeinate || caffeinate -dimsu &"'
+
+# ---------- Notifications: DND toggle ----------
+cmd-ctrl-comma = 'exec-and-forget shortcuts run "Toggle Do Not Disturb"'
+
+# ---------- System control (Omarchy Super+Ctrl family) ----------
+# Note: ALT+K is handled by Hammerspoon (~/.hammerspoon/init.lua) to show
+# the keybindings overlay. Left unbound here so it propagates.
+cmd-ctrl-a = 'exec-and-forget open "x-apple.systempreferences:com.apple.Sound-Settings.extension"'
+cmd-ctrl-b = 'exec-and-forget open "x-apple.systempreferences:com.apple.BluetoothSettings"'
+cmd-ctrl-w = 'exec-and-forget open "x-apple.systempreferences:com.apple.wifi-settings-extension"'
+cmd-ctrl-s = 'exec-and-forget open "x-apple.systempreferences:com.apple.preferences.sharing"'
+cmd-ctrl-t = 'exec-and-forget open -na Ghostty --args -e btop'
+alt-shift-t = 'exec-and-forget open -na Ghostty --args -e btop'
+cmd-ctrl-h = 'exec-and-forget open -a "System Information"'
+cmd-ctrl-period = 'exec-and-forget open -a HandBrake'
+
+# ---------- Omarchy extras ----------
+cmd-esc = 'exec-and-forget ~/.local/bin/omarchy-system-menu'
+cmd-ctrl-v = 'exec-and-forget open "raycast://extensions/raycast/clipboard-history/clipboard-history"'
+# cmd-ctrl-p, cmd-ctrl-alt-{t,w,b} handled by Hammerspoon (~/.hammerspoon/init.lua)
+# so the notifications fire through hs.notify (osascript notifs are silently
+# blocked without permissions we can't grant from CLI).
+
+# ---------- Service mode ----------
+cmd-shift-semicolon = 'mode service'
+
+[mode.service.binding]
+esc = ['reload-config', 'mode main']
+r = ['flatten-workspace-tree', 'mode main']
+f = ['layout floating tiling', 'mode main']
+backspace = ['close-all-windows-but-current', 'mode main']
+cmd-shift-left = ['join-with left', 'mode main']
+cmd-shift-down = ['join-with down', 'mode main']
+cmd-shift-up = ['join-with up', 'mode main']
+cmd-shift-right = ['join-with right', 'mode main']
+
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.1password.1password'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.raycast.macos'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.ActivityMonitor'
+run = 'layout floating'
+
+# ---------- Floats ported from Omarchy ----------
+# Omarchy floats these in default/hypr/apps/{system,steam,localsend,pip}.conf.
+# It also centers them and sizes them 875x600; AeroSpace can't do either for a
+# floating window, so a float dragged to the top of the screen can still end up
+# behind SketchyBar. Low risk in practice (nobody maximizes Calculator), and
+# alt-t tiles the focused window if one ever does get stranded.
+
+# Omarchy: `float on, match:class org.gnome.Calculator`
+[[on-window-detected]]
+if.app-id = 'com.apple.calculator'
+run = 'layout floating'
+
+# Omarchy floats its document/media viewers (org.gnome.Evince, imv, mpv);
+# Preview and VLC are the local equivalents.
+[[on-window-detected]]
+if.app-id = 'com.apple.Preview'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'org.videolan.vlc'
+run = 'layout floating'
+
+# Omarchy: `float on, match:class steam`
+[[on-window-detected]]
+if.app-id = 'com.valvesoftware.steam'
+run = 'layout floating'
+
+# Omarchy: `float on, match:class (Share|localsend)`
+[[on-window-detected]]
+if.app-id = 'org.localsend.localsendApp'
+run = 'layout floating'
+
+# Omarchy: `float on, match:tag pip` (title-matched, since PiP is a browser
+# window rather than an app of its own).
+[[on-window-detected]]
+if.window-title-regex-substring = 'Picture.in.Picture'
+run = 'layout floating'
+
+# ---------- Workspace auto-assignment (Omarchy-style) ----------
+# 1 Browser · 2 Claude · 3 Terminal · 4 Comms · 5 Music/Notes
+
+# Browsers are pinned to tiling, mirroring Omarchy's own rule
+# (default/hypr/apps/browser.conf: `windowrule = tile on, match:tag
+# chromium-based-browser`). Gaps only apply to tiled windows, and the macOS menu
+# bar is auto-hidden, so a floating browser is free to sit at y=0 with its tab
+# strip and window controls stranded behind SketchyBar.
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser'
+run = ['layout tiling', 'move-node-to-workspace 1']
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = ['layout tiling', 'move-node-to-workspace 1']
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'org.whispersystems.signal-desktop'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
+if.app-id = 'abnerworks.Typora'
+run = 'move-node-to-workspace 5'

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Cycle to the next wallpaper for the active theme.
+# Prints "TITLE|||BODY" to stdout for Hammerspoon.
+DIR="$HOME/Pictures/Wallpapers"
+STATE_FILE="$HOME/.cache/omarchy-wallpaper-index"
+THEME_FILE="$HOME/.config/theme-switcher/current"
+mkdir -p "$(dirname "$STATE_FILE")"
+
+if [ ! -d "$DIR" ] || [ -z "$(ls -A "$DIR" 2>/dev/null)" ]; then
+  echo "Wallpaper|||Drop .jpg/.png/.heic files in $DIR"
+  exit 0
+fi
+
+THEME="$(cat "$THEME_FILE" 2>/dev/null)"
+
+shopt -s nullglob nocaseglob
+if [ -n "$THEME" ]; then
+  files=("$DIR/${THEME}_"*.{jpg,jpeg,png,heic})
+fi
+# Fall back to all wallpapers if the theme has none
+if [ ${#files[@]} -eq 0 ]; then
+  files=("$DIR"/*.{jpg,jpeg,png,heic})
+fi
+shopt -u nocaseglob
+[ ${#files[@]} -eq 0 ] && { echo "Wallpaper|||No image files in $DIR"; exit 0; }
+
+# Use a per-theme index so cycling stays inside the theme without resetting
+STATE="${STATE_FILE}-${THEME:-all}"
+
+idx=$(cat "$STATE" 2>/dev/null || echo -1)
+idx=$(( (idx + 1) % ${#files[@]} ))
+echo "$idx" > "$STATE"
+
+next="${files[$idx]}"
+osascript -e "tell application \"System Events\" to set picture of every desktop to \"$next\"" 2>/dev/null
+echo "Wallpaper|||$(basename "$next")"

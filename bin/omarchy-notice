@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Quick info — prints "TITLE|||BODY" to stdout for Hammerspoon to display.
+# Usage: omarchy-notice time|weather|battery
+
+case "$1" in
+  time)
+    echo "Date & Time|||$(date '+%A, %B %-d  %-I:%M %p')"
+    ;;
+  weather)
+    body="$(curl -s --max-time 3 'wttr.in/?format=%l:+%c+%t+(%C)' 2>/dev/null || echo 'No connection')"
+    echo "Weather|||$body"
+    ;;
+  battery)
+    pct="$(pmset -g batt | grep -Eo '[0-9]+%' | head -1)"
+    state="$(pmset -g batt | head -1 | sed 's/.*on //; s/ Power.*//')"
+    echo "Battery|||$pct  ·  $state"
+    ;;
+  *)
+    echo "usage: $0 time|weather|battery" >&2
+    exit 1
+    ;;
+esac

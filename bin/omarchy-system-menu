@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Omarchy-style system menu — SUPER+ESCAPE
+choice=$(osascript <<'EOF'
+tell application "System Events"
+  activate
+  set theChoice to choose from list {"Lock", "Sleep", "Restart", "Shut Down", "Log Out"} with title "System" with prompt "Action:" default items {"Lock"} OK button name "Select" cancel button name "Cancel"
+end tell
+EOF
+)
+case "$choice" in
+  Lock*)      osascript -e 'tell application "System Events" to keystroke "q" using {control down, command down}' ;;
+  Sleep*)     pmset sleepnow ;;
+  Restart*)   osascript -e 'tell application "System Events" to restart' ;;
+  Shut*)      osascript -e 'tell application "System Events" to shut down' ;;
+  Log*)       osascript -e 'tell application "System Events" to log out' ;;
+esac
