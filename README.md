@@ -110,6 +110,33 @@ Press **⌥K** for the searchable overlay. Highlights:
 - **⌘⌃P** — cycle wallpaper
 - **⌘⌃⌥ T/W/B** — time / weather / battery notice
 
+## How close is this to real Omarchy?
+
+Honest answer, measured against **Omarchy v4.0.0** (2026-08-14): about **15%**
+of the full project, or roughly **40%** of the day-to-day desktop feel.
+
+Omarchy v4 ships 425 `omarchy-*` commands. A big share of them are an OS
+installer, updater, and hardware layer that has no macOS equivalent and never
+will here. This port goes after the part you live in — the look, the tiling,
+the themes, the menus:
+
+| Area | Status |
+|---|---|
+| Tiling WM + workspaces | ✅ AeroSpace stands in for Hyprland |
+| Top bar | ✅ SketchyBar stands in for Waybar |
+| Window borders | ✅ JankyBorders |
+| Themes (terminal, editor, btop) | ✅ Synced live from the Omarchy repo, all of them |
+| Auto light/dark theme switching | ✅ Instant, via a native listener (not in Omarchy itself) |
+| Wallpaper cycling per theme | ✅ |
+| System menu / keybinding overlay | ✅ Hammerspoon versions of omarchy-menu and the keybinding list |
+| Weather / battery / time notices | ✅ |
+| App launcher | ⚠️ Use Raycast or Spotlight; no walker port |
+| Screenshots / screen recording / OCR capture | ❌ macOS has its own (⌘⇧5) |
+| Webapps, voice typing (voxtype), agent tooling | ❌ |
+| Installer, updates, migrations, hardware, Plymouth | ❌ Not applicable on macOS |
+
+If a gap bothers you, open an issue — the daily-feel column is the roadmap.
+
 ## Credits
 
 - [basecamp/omarchy](https://github.com/basecamp/omarchy) — the original, and
